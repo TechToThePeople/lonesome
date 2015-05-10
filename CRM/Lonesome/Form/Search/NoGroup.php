@@ -15,28 +15,27 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
    * @return void
    */
   function buildForm(&$form) {
-    CRM_Utils_System::setTitle(ts('My Search Title'));
+    CRM_Utils_System::setTitle(ts('Contacts without groups'));
 
-    $form->add('text',
-      'household_name',
+/*    $form->add('date',
+      'start_date',
       ts('Household Name'),
       TRUE
     );
 
-    $stateProvince = array('' => ts('- any state/province -')) + CRM_Core_PseudoConstant::stateProvince();
-    $form->addElement('select', 'state_province_id', ts('State/Province'), $stateProvince);
+
 
     // Optionally define default search values
     $form->setDefaults(array(
-      'household_name' => '',
-      'state_province_id' => NULL,
+      'start_date' => '',
+      'end_date' => NULL,
     ));
 
     /**
      * if you are using the standard template, this array tells the template what elements
      * are part of the search criteria
      */
-    $form->assign('elements', array('household_name', 'state_province_id'));
+//    $form->assign('elements', array('household_name', 'state_province_id'));
   }
 
   /**
@@ -63,9 +62,11 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
     // return by reference
     $columns = array(
       ts('Contact Id') => 'contact_id',
-      ts('Contact Type') => 'contact_type',
+      ts('Contact Type') => 'contact_sub_type',
       ts('Name') => 'sort_name',
-      ts('State') => 'state_province',
+      ts('Source') => 'source',
+      ts('Created') => 'created_date',
+      ts('Modified') => 'modified_date',
     );
     return $columns;
   }
@@ -90,7 +91,7 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
    *
    * @return string, sql fragment with SELECT arguments
    */
-
+/*
 SELECT
     c.ID AS InternalContactID
 FROM
@@ -106,29 +107,24 @@ WHERE
         c9.civicrm_group_contact_cache c3
         WHERE c3.contact_id = c.id);
 
+*/
   function select() {
     return "
       contact_a.id           as contact_id  ,
-      contact_a.contact_type as contact_type,
+      contact_a.contact_sub_type as contact_sub_type,
       contact_a.sort_name    as sort_name,
-      state_province.name    as state_province
-    ";
+      source,
+      created_date,
+      modified_date
+      ";
   }
-
   /**
    * Construct a SQL FROM clause
    *
    * @return string, sql fragment with FROM and JOIN clauses
    */
   function from() {
-    return "
-      FROM      civicrm_contact contact_a
-      LEFT JOIN civicrm_address address ON ( address.contact_id       = contact_a.id AND
-                                             address.is_primary       = 1 )
-      LEFT JOIN civicrm_email           ON ( civicrm_email.contact_id = contact_a.id AND
-                                             civicrm_email.is_primary = 1 )
-      LEFT JOIN civicrm_state_province state_province ON state_province.id = address.state_province_id
-    ";
+    return "FROM civicrm_contact contact_a";
   }
 
   /**
@@ -139,40 +135,19 @@ WHERE
    */
   function where($includeContactIDs = FALSE) {
     $params = array();
-    $where = "contact_a.contact_type   = 'Household'";
+    $where = "
+    contact_a.contact_type = 'Individual'
+    AND NOT EXISTS (
+        SELECT 1 FROM
+        civicrm_group_contact c2
+        WHERE c2.contact_id = contact_a.id)
+    AND NOT EXISTS ( -- don't forget to check smart groups
+        SELECT 1 FROM
+        civicrm_group_contact_cache c3
+        WHERE c3.contact_id = contact_a.id)       
+      ";
 
-    $count  = 1;
-    $clause = array();
-    $name   = CRM_Utils_Array::value('household_name',
-      $this->_formValues
-    );
-    if ($name != NULL) {
-      if (strpos($name, '%') === FALSE) {
-        $name = "%{$name}%";
-      }
-      $params[$count] = array($name, 'String');
-      $clause[] = "contact_a.household_name LIKE %{$count}";
-      $count++;
-    }
-
-    $state = CRM_Utils_Array::value('state_province_id',
-      $this->_formValues
-    );
-    if (!$state &&
-      $this->_stateID
-    ) {
-      $state = $this->_stateID;
-    }
-
-    if ($state) {
-      $params[$count] = array($state, 'Integer');
-      $clause[] = "state_province.id = %{$count}";
-    }
-
-    if (!empty($clause)) {
-      $where .= ' AND ' . implode(' AND ', $clause);
-    }
-
+    $params = array();
     return $this->whereClause($where, $params);
   }
 
@@ -191,7 +166,8 @@ WHERE
    * @param array $row modifiable SQL result row
    * @return void
    */
-  function alterRow(&$row) {
+/*  function alterRow(&$row) {
     $row['sort_name'] .= ' ( altered )';
   }
+ */
 }
