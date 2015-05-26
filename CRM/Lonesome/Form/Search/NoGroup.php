@@ -139,6 +139,7 @@ WHERE
     $params = array();
     $where = "
     contact_a.contact_type = 'Individual'
+    AND contact_a.is_deleted = 0
     AND NOT EXISTS (
         SELECT 1 FROM
         civicrm_group_contact c2
