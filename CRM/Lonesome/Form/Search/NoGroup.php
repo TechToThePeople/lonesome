@@ -82,7 +82,9 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
    * @return string, sql
    */
   function all($offset = 0, $rowcount = 0, $sort = NULL, $includeContactIDs = FALSE, $justIDs = FALSE) {
-    // delegate to $this->sql(), $this->select(), $this->from(), $this->where(), etc.
+    if (!$justIDs || !$sort) {
+      $sort = 'created_date DESC';
+    }
     return $this->sql($this->select(), $offset, $rowcount, $sort, $includeContactIDs, NULL);
   }
 
