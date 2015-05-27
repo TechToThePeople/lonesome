@@ -15,27 +15,23 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
    * @return void
    */
   function buildForm(&$form) {
-    CRM_Utils_System::setTitle(ts('Contacts without groups'));
-
-/*    $form->add('date',
-      'start_date',
-      ts('Household Name'),
-      TRUE
-    );
-
-
-
-    // Optionally define default search values
+      
+    CRM_Utils_System::setTitle(ts('Contacts without groups and/or tags'));
+    
+    $form->addElement('checkbox', 'without_groups', ts('Contacts without groups'));
+    $form->addElement('checkbox', 'without_tags', ts('Contacts without tags'));
+    
     $form->setDefaults(array(
-      'start_date' => '',
-      'end_date' => NULL,
+      'without_groups' => true,
+      'without_tags' => true
     ));
-
-    /**
-     * if you are using the standard template, this array tells the template what elements
-     * are part of the search criteria
-     */
-//    $form->assign('elements', array('household_name', 'state_province_id'));
+    $form->assign('elements', array(
+      'without_groups',
+      'without_tags',
+    ));
+    
+    $form->addFormRule(array('CRM_Lonesome_Form_Search_NoGroup', 'formRule'), $form);
+    
   }
 
   /**
@@ -47,10 +43,6 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
    */
   function summary() {
     return NULL;
-    // return array(
-    //   'summary' => 'This is a summary',
-    //   'total' => 50.0,
-    // );
   }
 
   /**
@@ -93,28 +85,11 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
    *
    * @return string, sql fragment with SELECT arguments
    */
-/*
-SELECT
-    c.ID AS InternalContactID
-FROM
-    c9.civicrm_contact c
-WHERE
-    c.contact_type = 'Individual'
-    AND NOT EXISTS (
-        SELECT 1 FROM
-        c9.civicrm_group_contact c2
-        WHERE c2.contact_id = c.id)
-    AND NOT EXISTS ( -- don't forget to check smart groups
-        SELECT 1 FROM
-        c9.civicrm_group_contact_cache c3
-        WHERE c3.contact_id = c.id);
-
-*/
   function select() {
     return "
-      contact_a.id           as contact_id  ,
-      contact_a.contact_sub_type as contact_sub_type,
-      contact_a.sort_name    as sort_name,
+      contact_a.id AS contact_id  ,
+      contact_a.contact_sub_type AS contact_sub_type,
+      contact_a.sort_name AS sort_name,
       source,
       created_date,
       modified_date
@@ -136,19 +111,40 @@ WHERE
    * @return string, sql fragment with conditional expressions
    */
   function where($includeContactIDs = FALSE) {
-    $params = array();
+      
+    $withoutGroups = CRM_Utils_Array::value('without_groups',
+      $this->_formValues
+    );
+    $whereWithoutGroups = '';
+    if ($withoutGroups){
+      $whereWithoutGroups = "
+        AND NOT EXISTS (
+            SELECT 1 FROM
+            civicrm_group_contact c2
+            WHERE c2.contact_id = contact_a.id)
+        AND NOT EXISTS ( -- dont forget to check smart groups
+            SELECT 1 FROM
+            civicrm_group_contact_cache c3
+            WHERE c3.contact_id = contact_a.id)
+        ";
+    }
+    
+    $withoutTags = CRM_Utils_Array::value('without_tags',
+      $this->_formValues
+    );
+    $whereWithoutTags = '';
+    if ($withoutTags) {
+      $whereWithoutTags .= "
+        AND NOT EXISTS (
+          SELECT 1 
+          FROM civicrm_entity_tag c4 
+          WHERE c4.entity_table = 'civicrm_contact' AND c4.entity_id = contact_a.id
+        )";
+    }
+    
     $where = "
-    contact_a.contact_type = 'Individual'
-    AND contact_a.is_deleted = 0
-    AND NOT EXISTS (
-        SELECT 1 FROM
-        civicrm_group_contact c2
-        WHERE c2.contact_id = contact_a.id)
-    AND NOT EXISTS ( -- don't forget to check smart groups
-        SELECT 1 FROM
-        civicrm_group_contact_cache c3
-        WHERE c3.contact_id = contact_a.id)       
-      ";
+    contact_a.contact_type = 'Individual' 
+    AND contact_a.is_deleted = 0 ".$whereWithoutGroups.$whereWithoutTags;
 
     $params = array();
     return $this->whereClause($where, $params);
@@ -161,16 +157,35 @@ WHERE
    */
   function templateFile() {
     return 'CRM/Contact/Form/Search/Custom.tpl';
-  }
-
+  } 
+  
   /**
-   * Modify the content of each row
+   * Global validation rules for the form.
    *
-   * @param array $row modifiable SQL result row
-   * @return void
+   * @param array $values
+   *   Posted values of the form.
+   *
+   * @param $files
+   * @param CRM_Core_Form $form
+   *
+   * @return array
+   *   list of errors to be posted back to the form
    */
-/*  function alterRow(&$row) {
-    $row['sort_name'] .= ' ( altered )';
+  public static function formRule($values, $files, $form) {
+    $errors = array();
+    if (!array_key_exists('without_groups', $values) &&
+        !array_key_exists('without_tags', $values))
+    {
+      if (!array_key_exists('without_groups', $values)) {
+        $errors['without_groups'] = ts('At least one checkbox have to be checked');
+      }
+      if (!array_key_exists('without_tags', $values)) {
+        $errors['without_tags'] = ts('At least one checkbox have to be checked');
+      }
+    }
+    
+    return empty($errors) ? true : $errors;
+    
   }
- */
+  
 }
