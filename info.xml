@@ -4,7 +4,7 @@
   <name>Find contacts without groups or without tags</name>
   <label>Find contacts without groups or without tags</label>
   <description>Provides a custom search a dataviz to let you find your individual contacts that don't belong to a group</description>
-  <downloadUrl>https://github.com/TechToThePeople/lonesome/archive/lonesome-v1.2.zip</downloadUrl>
+  <downloadUrl>https://github.com/TechToThePeople/lonesome/archive/master.zip</downloadUrl>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>xavier</author>

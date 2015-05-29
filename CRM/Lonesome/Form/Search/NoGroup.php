@@ -53,7 +53,7 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
   function &columns() {
     // return by reference
     $columns = array(
-      ts('Contact Type') => 'contact_type',
+      ts('Contact Sub&nbsp;Type') => 'contact_sub_type',
       ts('Name') => 'sort_name',
       ts('Source') => 'source',
       ts('Created') => 'created_date',
@@ -87,7 +87,7 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
   function select() {
     return "
       contact_a.id AS contact_id,
-      contact_a.contact_type AS contact_type,
+      contact_a.contact_sub_type AS contact_sub_type,
       contact_a.sort_name AS sort_name,
       source,
       created_date,
