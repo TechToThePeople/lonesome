@@ -6,8 +6,9 @@
 class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Base implements CRM_Contact_Form_Search_Interface {
   function __construct(&$formValues) {
     parent::__construct($formValues);
-  }
 
+  }
+    
   /**
    * Prepare a set of search fields
    *
@@ -31,7 +32,6 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
     ));
     
     $form->addFormRule(array('CRM_Lonesome_Form_Search_NoGroup', 'formRule'), $form);
-    
   }
 
   /**
@@ -53,8 +53,7 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
   function &columns() {
     // return by reference
     $columns = array(
-      ts('Contact Id') => 'contact_id',
-      ts('Contact Type') => 'contact_sub_type',
+      ts('Contact Sub&nbsp;Type') => 'contact_sub_type',
       ts('Name') => 'sort_name',
       ts('Source') => 'source',
       ts('Created') => 'created_date',
@@ -74,9 +73,9 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
    * @return string, sql
    */
   function all($offset = 0, $rowcount = 0, $sort = NULL, $includeContactIDs = FALSE, $justIDs = FALSE) {
-    if (!$justIDs || !$sort) {
-      $sort = 'created_date DESC';
-    }
+    if (empty($sort)) {
+      $sort = ' created_date DESC ';
+    }    
     return $this->sql($this->select(), $offset, $rowcount, $sort, $includeContactIDs, NULL);
   }
 
@@ -87,7 +86,7 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
    */
   function select() {
     return "
-      contact_a.id AS contact_id  ,
+      contact_a.id AS contact_id,
       contact_a.contact_sub_type AS contact_sub_type,
       contact_a.sort_name AS sort_name,
       source,
@@ -95,6 +94,7 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
       modified_date
       ";
   }
+  
   /**
    * Construct a SQL FROM clause
    *
@@ -122,7 +122,7 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
             SELECT 1 FROM
             civicrm_group_contact c2
             WHERE c2.contact_id = contact_a.id)
-        AND NOT EXISTS ( -- dont forget to check smart groups
+        AND NOT EXISTS (
             SELECT 1 FROM
             civicrm_group_contact_cache c3
             WHERE c3.contact_id = contact_a.id)
@@ -185,7 +185,6 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
     }
     
     return empty($errors) ? true : $errors;
-    
   }
   
 }

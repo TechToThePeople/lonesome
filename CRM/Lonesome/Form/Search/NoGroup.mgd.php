@@ -12,7 +12,7 @@ return array (
     array (
       'version' => 3,
       'label' => 'NoGroup',
-      'description' => 'NoGroup (eu.tttp.lonesome)',
+      'description' => 'Find contacts without groups or without tags',
       'class_name' => 'CRM_Lonesome_Form_Search_NoGroup',
     ),
   ),
