@@ -112,9 +112,7 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
    */
   function where($includeContactIDs = FALSE) {
       
-    $withoutGroups = CRM_Utils_Array::value('without_groups',
-      $this->_formValues
-    );
+    $withoutGroups = $this->_formValues['without_groups'] ?? NULL;
     $whereWithoutGroups = '';
     if ($withoutGroups){
       $whereWithoutGroups = "
@@ -129,9 +127,7 @@ class CRM_Lonesome_Form_Search_NoGroup extends CRM_Contact_Form_Search_Custom_Ba
         ";
     }
     
-    $withoutTags = CRM_Utils_Array::value('without_tags',
-      $this->_formValues
-    );
+    $withoutTags = $this->_formValues['without_tags'] ?? NULL;
     $whereWithoutTags = '';
     if ($withoutTags) {
       $whereWithoutTags .= "
